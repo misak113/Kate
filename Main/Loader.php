@@ -35,9 +35,9 @@ class Loader extends \Nette\Object implements IEnclosed {
     $BASE_URL;
 
     protected $kinqModules = false;
-    protected $loadDatabase = false;
     protected $routerModel = false;
     protected $pageModel = false;
+    protected $cacheCreator;
 
     protected function __construct(\Nette\Config\Configurator $configurator) {
 	$this->setConfigurator($configurator);
@@ -56,7 +56,7 @@ class Loader extends \Nette\Object implements IEnclosed {
 		throw new \Nette\InvalidArgumentException('Poprvé je třeba zadat Parametry!');
 	    }
 	    self::$loader = new Loader($configurator);
-	    //self::$loader->initApplication();
+	    self::$loader->initApplication();
 	}
 	return self::$loader;
     }
@@ -64,7 +64,7 @@ class Loader extends \Nette\Object implements IEnclosed {
     /**
      * Zajistí základní prvky pro běh aplikace
      */
-    public function initApplication() {
+    protected function initApplication() {
 	new \shorthands; // Pro naloadování daného common helperu pro zkracování zápisů
 	$cookies = \Kate\Http\Cookies::get();
 
@@ -80,27 +80,11 @@ class Loader extends \Nette\Object implements IEnclosed {
 	}
 	$this->application->catchExceptions = !self::$DEBUG_MODE;
 
-
-
-	//načte databázi
-	$this->loadDatabase();
-
-	// Načte KinqMudules HookContainer
-	$this->loadKinqModules();
-
-
-	
-	$this->getPageModel()->init();
-
-	
 	$this->initPathAndUrl();
 
+    }
 
-	//naloduje routery
-	//$router = $this->application->getRouter();
-	if ($this->routerModel === false) {
-	    $this->routerModel = \Kate\Main\RouterModel::get();
-	}
+    public function loadRouters() {
 	$this->routerModel->setRouters($this->application->getRouter());
     }
 
@@ -108,29 +92,14 @@ class Loader extends \Nette\Object implements IEnclosed {
 	$this->routerModel = $routerModel;
     }
 
-    protected function initPathAndUrl() {
-	self::$TEMP_PATH = \Nette\Environment::getVariable('tempDir');
-	self::$WWW_PATH = WWW_DIR;
-	$exp = explode('/', WWW_DIR);
-	$exp = explode('\\', end($exp));
-	$exp = end($exp);
-	self::$BASE_PATH = substr(WWW_DIR, 0, strlen(WWW_DIR) - strlen($exp) - 1);
-	self::$CACHE_STORAGE_PATH = self::$TEMP_PATH . S . self::CACHE_DIR;
-	self::$IMAGES_PATH = self::$WWW_PATH . S . self::IMAGES_DIR;
-	self::$USERFILES_PATH = self::$WWW_PATH . S . self::USERFILES_DIR;
-	self::$BASE_URL = rtrim(\Nette\Environment::getHttpRequest()->getUrl()->getBaseUrl(), '/');
+    public function loadCache() {
+	$this->cacheCreator = new CacheCreator(self::getCacheStoragePath(), self::get()->getPageModel()->getCacheExpirations(), !self::isCacheMode());
     }
 
-    public function setLoadDatabase($load = true) {
-	$this->loadDatabase = $load;
-    }
     /**
      * Nalouduje databázi do proměné
      */
-    protected function loadDatabase() {
-	if (!$this->loadDatabase) {
-	    return;
-	}
+    public function loadDatabase() {
 	$reflection = new \Nette\Database\Reflection\ConventionalReflection('id_%s', 'id_%s', '%s');
 
 	$db = $this->container->params['database'];
@@ -167,6 +136,19 @@ class Loader extends \Nette\Object implements IEnclosed {
 	$this->container->addService('hook', $hookService);
     }
 
+    protected function initPathAndUrl() {
+	self::$TEMP_PATH = \Nette\Environment::getVariable('tempDir');
+	self::$WWW_PATH = WWW_DIR;
+	$exp = explode('/', WWW_DIR);
+	$exp = explode('\\', end($exp));
+	$exp = end($exp);
+	self::$BASE_PATH = substr(WWW_DIR, 0, strlen(WWW_DIR) - strlen($exp) - 1);
+	self::$CACHE_STORAGE_PATH = self::$TEMP_PATH . S . self::CACHE_DIR;
+	self::$IMAGES_PATH = self::$WWW_PATH . S . self::IMAGES_DIR;
+	self::$USERFILES_PATH = self::$WWW_PATH . S . self::USERFILES_DIR;
+	self::$BASE_URL = rtrim(\Nette\Environment::getHttpRequest()->getUrl()->getBaseUrl(), '/');
+    }
+
     /**
      * Vrátí instanci databáze
      * @return Connection
@@ -188,7 +170,7 @@ class Loader extends \Nette\Object implements IEnclosed {
     }
 
     public function getUserModel() {
-	return \Kate\Main\PageModel::get()->getUserModel();
+	return $this->pageModel->getUserModel();
     }
 
     public static function isDebugMode() {
@@ -227,11 +209,19 @@ class Loader extends \Nette\Object implements IEnclosed {
 	$this->pageModel = $pageModel;
     }
 
+    public function loadPageModel() {
+	$this->getPageModel()->init();
+    }
+
     public function getPageModel() {
 	if ($this->pageModel === false) {
 	    $this->pageModel = PageModel::get();
 	}
 	return $this->pageModel;
+    }
+
+    public function getCacheCreator() {
+	return $this->cacheCreator;
     }
 
 }

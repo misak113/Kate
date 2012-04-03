@@ -141,4 +141,23 @@ abstract class Presenter extends \Nette\Application\UI\Presenter {
 	}
     }
 
+
+    public function addBaseScript($path) {
+	if (!preg_match('~^.+\.js$~', $path)) {
+	    $path = '/js/' . $path . '.js';
+	}
+	if (!in_array($path, $this->scripts)) {
+	    $this->scripts[] = $path;
+	}
+    }
+    public function addBaseStyle($path, $media = 'screen,projection,tv', $type = 'text/css') {
+	if (!preg_match('~^.+\.css$~', $path)) {
+	    $path = '/css/' . $path . '.css';
+	}
+	$style = array($path, $media, $type);
+	if (!in_array($style, $this->styles)) {
+	    $this->styles[] = $style;
+	}
+    }
+
 }

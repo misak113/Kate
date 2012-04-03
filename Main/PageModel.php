@@ -23,7 +23,7 @@ class PageModel extends Kate\Main\Model implements IPageModel {
 	return null;
     }
 
-    public static function getCacheExpirations() {
+    public function getCacheExpirations() {
 	return null;
     }
 
