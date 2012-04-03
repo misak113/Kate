@@ -27,7 +27,7 @@ abstract class Presenter extends \Nette\Application\UI\Presenter {
     protected $styles = array(
 	array('/css/screen.css', 'screen,projection,tv', 'text/css'),
 	array('/css/print.css', 'print', 'text/css'),
-	array('/css/libs/jquery-ui/dark-hive/jquery-ui-1.8.16.custom.css', 'screen,projection,tv', 'text/css'),
+	//array('/css/libs/jquery-ui/dark-hive/jquery-ui-1.8.16.custom.css', 'screen,projection,tv', 'text/css'),
     );
     // Vždy načítané javascripty
     protected $scripts = array(
@@ -37,7 +37,7 @@ abstract class Presenter extends \Nette\Application\UI\Presenter {
 	'/js/libs/underscore.min.js',
 	'/js/libs/underscore.string.min.js',
 	'/js/libs/jquery-1.7.1.min.js',
-	'/js/libs/jquery-ui-1.8.16.custom.min.js',
+	//'/js/libs/jquery-ui-1.8.16.custom.min.js',
 	'/js/libs/netteForms.js',
 	'/js/libs/jquery.json-2.3.min.js',
     );

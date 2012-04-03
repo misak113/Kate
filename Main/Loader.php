@@ -81,18 +81,18 @@ class Loader extends \Nette\Object implements IEnclosed {
 	$this->loadDatabase();
 
 
-	if (!class_exists('PageModel')) {
+	if (!class_exists('\Kate\Main\PageModel')) {
 	    throw new Kate\ClassNotFoundException('Vytvořte třídu PageModel Která bude obstarávat základní data pro zobrazení.');
 	}
 	$this->initPathAndUrl();
-	\PageModel::get()->init();
+	$this->getPageModel()->init();
 
 
 
 	//naloduje routery
 	$router = $this->application->getRouter();
-	if (class_exists('RouterModel')) {
-	    \RouterModel::setRouters($router);
+	if (class_exists('\Kate\Main\RouterModel')) {
+	    \Kate\Main\RouterModel::setRouters($router);
 	} else {
 	    throw new Kate\ClassNotFoundException('Vytvořte třídu RouterModel pro správné routování aplikace.');
 	}
@@ -118,14 +118,14 @@ class Loader extends \Nette\Object implements IEnclosed {
 	$reflection = new \Nette\Database\Reflection\ConventionalReflection('id_%s', 'id_%s', '%s');
 
 	$db = $this->container->params['database'];
-	$dsn = "{$db['driver']}:host={$db['host']};dbname={$db['database']}" .
+	$dsn = "{$db['driver']}:host={$db['host']};dbname={$db['dbname']}" .
 		((isset($db['port'])) ? ";port={$db['port']}" : "");
 	if (class_exists('\Kate\Database\Connection')) {
 	    $connectionName = '\Kate\Database\Connection';
 	} else {
 	    $connectionName = '\Nette\Database\Connection';
 	}
-	$this->database = new $connectionName($dsn, $db['username'], $db['password']);
+	$this->database = new $connectionName($dsn, $db['user'], $db['password']);
 	$this->database->setDatabaseReflection($reflection);
 
 	$panel = new \Nette\Database\Diagnostics\ConnectionPanel();
@@ -166,7 +166,7 @@ class Loader extends \Nette\Object implements IEnclosed {
     }
 
     public function getUserModel() {
-	return \PageModel::get()->getUserModel();
+	return \Kate\Main\PageModel::get()->getUserModel();
     }
 
     public static function isDebugMode() {
@@ -202,7 +202,7 @@ class Loader extends \Nette\Object implements IEnclosed {
     }
 
     public static function getPageModel() {
-	return \PageModel::get();
+	return \Kate\Main\PageModel::get();
     }
 
 }
