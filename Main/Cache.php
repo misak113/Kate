@@ -72,7 +72,7 @@ class Cache extends \Nette\Object {
      * @return string expirace
      * @todo
      */
-    private function getExpiration($name) {
+    protected function getExpiration($name) {
         $expirations = \Kate\Main\PageModel::getCacheExpirations();
         $className = get_class($this->class);
         if (!key_exists($className, $expirations)) {
@@ -91,7 +91,7 @@ class Cache extends \Nette\Object {
      * @return boolean 
      * @todo
      */
-    private function hasForceCall($name) {
+    protected function hasForceCall($name) {
         return !Loader::isCacheMode();
     }
     

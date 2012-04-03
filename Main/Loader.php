@@ -25,16 +25,19 @@ class Loader extends \Nette\Object implements IEnclosed {
 
 
 
-    private static $loader = null;
-    private $application = null;
-    private $database = null;
-    private $configurator = null;
-    private $container = null;
-    private static $DEBUG_MODE, $CACHE_MODE;
-    private static $BASE_PATH, $CACHE_STORAGE_PATH, $TEMP_PATH, $WWW_PATH, $IMAGES_PATH, $USERFILES_PATH,
+    protected static $loader = null;
+    protected $application = null;
+    protected $database = null;
+    protected $configurator = null;
+    protected $container = null;
+    protected static $DEBUG_MODE, $CACHE_MODE;
+    protected static $BASE_PATH, $CACHE_STORAGE_PATH, $TEMP_PATH, $WWW_PATH, $IMAGES_PATH, $USERFILES_PATH,
     $BASE_URL;
 
-    private function __construct(\Nette\Config\Configurator $configurator) {
+    protected $kinqModules = false;
+    protected $loadDatabase = false;
+
+    protected function __construct(\Nette\Config\Configurator $configurator) {
 	$this->setConfigurator($configurator);
 	$this->container = \Nette\Environment::getContext();
 	$this->application = $this->container->application;
@@ -51,7 +54,7 @@ class Loader extends \Nette\Object implements IEnclosed {
 		throw new \Nette\InvalidArgumentException('Poprvé je třeba zadat Parametry!');
 	    }
 	    self::$loader = new Loader($configurator);
-	    self::$loader->initApplication();
+	    //self::$loader->initApplication();
 	}
 	return self::$loader;
     }
@@ -59,7 +62,7 @@ class Loader extends \Nette\Object implements IEnclosed {
     /**
      * Zajistí základní prvky pro běh aplikace
      */
-    private function initApplication() {
+    public function initApplication() {
 	new \shorthands; // Pro naloadování daného common helperu pro zkracování zápisů
 	$cookies = \Kate\Http\Cookies::get();
 
@@ -80,6 +83,8 @@ class Loader extends \Nette\Object implements IEnclosed {
 	//načte databázi
 	$this->loadDatabase();
 
+	// Načte KinqMudules HookContainer
+	$this->loadKinqModules();
 
 	if (!class_exists('\Kate\Main\PageModel')) {
 	    throw new Kate\ClassNotFoundException('Vytvořte třídu PageModel Která bude obstarávat základní data pro zobrazení.');
@@ -98,7 +103,7 @@ class Loader extends \Nette\Object implements IEnclosed {
 	}
     }
 
-    private function initPathAndUrl() {
+    protected function initPathAndUrl() {
 	self::$TEMP_PATH = \Nette\Environment::getVariable('tempDir');
 	self::$WWW_PATH = WWW_DIR;
 	$exp = explode('/', WWW_DIR);
@@ -111,10 +116,16 @@ class Loader extends \Nette\Object implements IEnclosed {
 	self::$BASE_URL = rtrim(\Nette\Environment::getHttpRequest()->getUrl()->getBaseUrl(), '/');
     }
 
+    public function setLoadDatabase($load = true) {
+	$this->loadDatabase = $load;
+    }
     /**
      * Nalouduje databázi do proměné
      */
-    private function loadDatabase() {
+    protected function loadDatabase() {
+	if (!$this->loadDatabase) {
+	    return;
+	}
 	$reflection = new \Nette\Database\Reflection\ConventionalReflection('id_%s', 'id_%s', '%s');
 
 	$db = $this->container->params['database'];
@@ -145,6 +156,20 @@ class Loader extends \Nette\Object implements IEnclosed {
 	  $this->database->onQuery[] = array('addService'); */
     }
 
+    public function setKinqModules(array $modules) {
+	$this->kinqModules = $modules;
+    }
+
+    protected function loadKinqModules() {
+	if ($this->kinqModules === false) {
+	    return;
+	}
+	$hook = new \kinq\Application\HookContainer($this->kinqModules);
+	$hookService = new \Nette\DI\ServiceDefinition();
+	$hookService->setClass($hook);
+	$this->container->addService('hook', $hookService);
+    }
+
     /**
      * Vrátí instanci databáze
      * @return Connection
@@ -153,7 +178,7 @@ class Loader extends \Nette\Object implements IEnclosed {
 	return $this->database;
     }
 
-    private function setConfigurator(\Nette\Config\Configurator $configurator) {
+    protected function setConfigurator(\Nette\Config\Configurator $configurator) {
 	$this->configurator = $configurator;
     }
 

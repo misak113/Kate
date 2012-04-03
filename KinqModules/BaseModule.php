@@ -10,13 +10,14 @@ abstract class BaseModule extends Nette\Object
 	const ROUTE_TRANSLATION = 'ROUTE_TRANSLATION';
 
 	private $namespace;
+	protected $hook;
 
 	public static function setupRouter(IRouter $router) { }
 
 	public static function setupPermission(Nette\Security\IAuthorizator $permission) { }
 
 	public function setupHooks(IHookContainer $hook) {
-
+	    $this->hook = $hook;
 	}
 
 	public function setupEvents(kinq\EventContainer $events) {

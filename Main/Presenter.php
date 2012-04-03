@@ -67,7 +67,7 @@ abstract class Presenter extends \Nette\Application\UI\Presenter {
 	parent::tryCall($method, $params);
     }
 
-    private function initPresenter() {
+    protected function initPresenter() {
 	$this->baseUrl = Loader::getBaseUrl();
 	$this->initTitle();
 	$this->template->setTranslator(\Kate\Helper\Translator::get());
@@ -99,7 +99,7 @@ abstract class Presenter extends \Nette\Application\UI\Presenter {
 	$this->template->scripts = $scripts;
     }
 
-    private function initTitle() {
+    protected function initTitle() {
 	$this->template->title = Loader::getPageModel()->getTitle();
     }
 
