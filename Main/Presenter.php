@@ -102,7 +102,7 @@ abstract class Presenter extends \Nette\Application\UI\Presenter {
     }
 
     protected function initTitle() {
-	$this->template->title = Loader::getPageModel()->getTitle();
+	$this->template->title = Loader::get()->getPageModel()->getTitle();
     }
 
     /**

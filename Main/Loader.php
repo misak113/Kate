@@ -37,6 +37,7 @@ class Loader extends \Nette\Object implements IEnclosed {
     protected $kinqModules = false;
     protected $loadDatabase = false;
     protected $routerModel = false;
+    protected $pageModel = false;
 
     protected function __construct(\Nette\Config\Configurator $configurator) {
 	$this->setConfigurator($configurator);
@@ -87,21 +88,20 @@ class Loader extends \Nette\Object implements IEnclosed {
 	// Načte KinqMudules HookContainer
 	$this->loadKinqModules();
 
-	if (!class_exists('\Kate\Main\PageModel')) { // @todo
-	    throw new Kate\ClassNotFoundException('Vytvořte třídu PageModel Která bude obstarávat základní data pro zobrazení.');
-	}
-	$this->initPathAndUrl();
+
+	
 	$this->getPageModel()->init();
 
+	
+	$this->initPathAndUrl();
 
 
 	//naloduje routery
 	//$router = $this->application->getRouter();
-	if ($this->routerModel !== false) {
-	    $this->routerModel->setRouters($this->application->getRouter());
-	} else {
-	    \Kate\Main\RouterModel::get()->setRouters($this->application->getRouter());
+	if ($this->routerModel === false) {
+	    $this->routerModel = \Kate\Main\RouterModel::get();
 	}
+	$this->routerModel->setRouters($this->application->getRouter());
     }
 
     public function setRouterModel(RouterModel $routerModel) {
@@ -223,8 +223,15 @@ class Loader extends \Nette\Object implements IEnclosed {
 	return self::$BASE_URL;
     }
 
-    public static function getPageModel() {
-	return \Kate\Main\PageModel::get();
+    public function setPageModel(PageModel $pageModel) {
+	$this->pageModel = $pageModel;
+    }
+
+    public function getPageModel() {
+	if ($this->pageModel === false) {
+	    $this->pageModel = PageModel::get();
+	}
+	return $this->pageModel;
     }
 
 }

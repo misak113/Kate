@@ -73,7 +73,7 @@ class Cache extends \Nette\Object {
      * @todo
      */
     protected function getExpiration($name) {
-        $expirations = \Kate\Main\PageModel::getCacheExpirations();
+        $expirations = \Kate\Main\Loader::get()->getPageModel()->getCacheExpirations();
         $className = get_class($this->class);
         if (!key_exists($className, $expirations)) {
             return null;
