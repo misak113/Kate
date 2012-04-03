@@ -36,6 +36,7 @@ class Loader extends \Nette\Object implements IEnclosed {
 
     protected $kinqModules = false;
     protected $loadDatabase = false;
+    protected $routerModel = false;
 
     protected function __construct(\Nette\Config\Configurator $configurator) {
 	$this->setConfigurator($configurator);
@@ -86,7 +87,7 @@ class Loader extends \Nette\Object implements IEnclosed {
 	// Načte KinqMudules HookContainer
 	$this->loadKinqModules();
 
-	if (!class_exists('\Kate\Main\PageModel')) {
+	if (!class_exists('\Kate\Main\PageModel')) { // @todo
 	    throw new Kate\ClassNotFoundException('Vytvořte třídu PageModel Která bude obstarávat základní data pro zobrazení.');
 	}
 	$this->initPathAndUrl();
@@ -95,12 +96,16 @@ class Loader extends \Nette\Object implements IEnclosed {
 
 
 	//naloduje routery
-	$router = $this->application->getRouter();
-	if (class_exists('\Kate\Main\RouterModel')) {
-	    \Kate\Main\RouterModel::setRouters($router);
+	//$router = $this->application->getRouter();
+	if ($this->routerModel !== false) {
+	    $this->routerModel->setRouters($this->application->getRouter());
 	} else {
-	    throw new Kate\ClassNotFoundException('Vytvořte třídu RouterModel pro správné routování aplikace.');
+	    \Kate\Main\RouterModel::get()->setRouters($this->application->getRouter());
 	}
+    }
+
+    public function setRouterModel(RouterModel $routerModel) {
+	$this->routerModel = $routerModel;
     }
 
     protected function initPathAndUrl() {
@@ -145,15 +150,6 @@ class Loader extends \Nette\Object implements IEnclosed {
 	    $this->database->onQuery[] = callback($panel, 'logQuery');
 	    Debugger::$bar->addPanel($panel);
 	}
-
-
-	/* function addService () {
-	  $service = new \Nette\Database\Diagnostics\ConnectionPanel;
-	  $service->explain = TRUE;
-	  Debugger::$bar->addPanel($service);
-	  return $service;
-	  }
-	  $this->database->onQuery[] = array('addService'); */
     }
 
     public function setKinqModules(array $modules) {
@@ -164,9 +160,10 @@ class Loader extends \Nette\Object implements IEnclosed {
 	if ($this->kinqModules === false) {
 	    return;
 	}
-	$hook = new \kinq\Application\HookContainer($this->kinqModules);
+	$hook = new \Kate\KinqModules\Hook\HookContainer($this->container, $this->kinqModules);
 	$hookService = new \Nette\DI\ServiceDefinition();
 	$hookService->setClass($hook);
+	$hookService->setFactory('notify');
 	$this->container->addService('hook', $hookService);
     }
 

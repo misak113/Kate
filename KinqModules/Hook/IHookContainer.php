@@ -1,6 +1,6 @@
 <?php
 
-namespace kinq\Application;
+namespace Kate\KinqModules\Hook;
 use Nette;
 
 interface IHookContainer

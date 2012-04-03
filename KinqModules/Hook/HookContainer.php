@@ -1,6 +1,6 @@
 <?php
 
-namespace kinq\Application;
+namespace Kate\KinqModules\Hook;
 use Nette
 ,	SplObjectStorage
 ,	Nette\Callback
@@ -9,7 +9,7 @@ use Nette
 ,	kinq;
 
 
-class HookContainer extends Nette\Object implements kinq\Application\IHookContainer
+class HookContainer extends Nette\Object implements \Kate\KinqModules\Hook\IHookContainer
 {
 	private $registry = array();
 	
@@ -18,13 +18,16 @@ class HookContainer extends Nette\Object implements kinq\Application\IHookContai
 	
 	private $presenter;
 
+	protected $modules = array();
+
 	protected $options = array(
 		'binder' => null,
 		'args' => null
 	);
 
-	public function __construct(array $modules)
+	public function __construct(Nette\DI\IContainer $context, array $modules)
 	{
+	    $this->context = $context;
 		$this->loadModules($modules);
 	}
 
@@ -33,11 +36,12 @@ class HookContainer extends Nette\Object implements kinq\Application\IHookContai
 		if (!preg_match('~Module$~', $moduleName)) {
 		    $moduleName = $moduleName.'Module';
 		}
-		if (class_exists($moduleName)) {
-		    $module = new $moduleName();
-		    $module->setupHook($this);
+		try {
+		    $module = new $moduleName($this);
+		    $module->setupHooks();
+		    $module->extendRouter($this->context->application->getRouter());
 		    $this->modules[] = $module;
-		} else {
+		} catch (Exception $e) {
 		    _d('Module "'.$moduleName.'" doesn\'t exists.');
 		}
 	    }
@@ -85,9 +89,10 @@ class HookContainer extends Nette\Object implements kinq\Application\IHookContai
 
 		if (!isset($this->registry[$event])) return new SplObjectStorage();
 		foreach ($this->registry[$event] as $object) {
-			call_user_func_array($object, $options);
+		    call_user_func_array($object, $options);
 		}
 	}
+
 
 	protected static function buildStorage() {
 		return new SplObjectStorage();

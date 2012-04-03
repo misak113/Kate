@@ -12,12 +12,23 @@ abstract class BaseModule extends Nette\Object
 	private $namespace;
 	protected $hook;
 
-	public static function setupRouter(IRouter $router) { }
-
-	public static function setupPermission(Nette\Security\IAuthorizator $permission) { }
-
-	public function setupHooks(IHookContainer $hook) {
+	public function __construct(\Kate\KinqModules\Hook\IHookContainer $hook) {
 	    $this->hook = $hook;
+	    $this->init();
+	}
+
+	public function init() {
+	    
+	}
+
+	public function extendRouter(\Nette\Application\Routers\RouteList $router) {
+	    //$router[] = $this->createRouter($mask, $metadata);
+	}
+
+	public function setupPermission(Nette\Security\IAuthorizator $permission) { }
+
+	public function setupHooks() {
+	    
 	}
 
 	public function setupEvents(kinq\EventContainer $events) {

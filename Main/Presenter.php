@@ -44,6 +44,7 @@ abstract class Presenter extends \Nette\Application\UI\Presenter {
     protected $jsVariables = array();
     protected $baseUrl;
     protected $appName;
+    protected $hook;
 
     public function __construct() {
 	$context = \Nette\Environment::getContext();
@@ -51,6 +52,7 @@ abstract class Presenter extends \Nette\Application\UI\Presenter {
 	new \Kate\External\__; // Načtení underscore knihovny
 	
 	$this->appName = 'kate';
+	$this->hook = $context->hasService('hook') ?$context->getService('hook')->class :null;
     }
 
     protected function setAppName($appName) {
