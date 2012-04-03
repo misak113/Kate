@@ -128,7 +128,7 @@ class Loader extends \Nette\Object implements IEnclosed {
 	$this->kinqModules = $modules;
     }
 
-    protected function loadKinqModules() {
+    public function loadKinqModules() {
 	if ($this->kinqModules === false) {
 	    return;
 	}
